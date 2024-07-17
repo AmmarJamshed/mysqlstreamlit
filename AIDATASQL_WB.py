@@ -42,16 +42,15 @@ def execute_query(query, engine):
     except SQLAlchemyError as e:
         return None, str(e)
 
+
 # Streamlit UI
 def main():
     st.title('Upload Data and Test SQL Queries in MySQL')
-
     # Upload CSV file
     uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.dataframe(df)
-
         # Get table name
         table_name = st.text_input('Enter table name to store data in MySQL')
         if st.button('Upload to MySQL'):
@@ -60,7 +59,6 @@ def main():
                 upload_to_mysql(df, table_name, engine)
             else:
                 st.error('Please enter a table name.')
-
     # SQL Query testing
     st.header('Test SQL Queries')
     query = st.text_area('Enter your SQL query')
@@ -74,4 +72,3 @@ def main():
                 st.dataframe(result)
         else:
             st.error('Please enter a valid SQL query.')
-
