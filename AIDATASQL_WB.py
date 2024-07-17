@@ -42,10 +42,6 @@ def execute_query(query, engine):
     except SQLAlchemyError as e:
         return None, str(e)
 
-
-# In[5]:
-
-
 # Streamlit UI
 def main():
     st.title('Upload Data and Test SQL Queries in MySQL')
@@ -56,34 +52,26 @@ def main():
         df = pd.read_csv(uploaded_file)
         st.dataframe(df)
 
+        # Get table name
+        table_name = st.text_input('Enter table name to store data in MySQL')
+        if st.button('Upload to MySQL'):
+            if table_name:
+                engine = create_mysql_engine()
+                upload_to_mysql(df, table_name, engine)
+            else:
+                st.error('Please enter a table name.')
 
-# In[8]:
-
-
-# Get table name
-table_name = st.text_input('Enter table name to store data in MySQL')
-if st.button('Upload to MySQL'):
-    if table_name:
-        engine = create_mysql_engine()
-        upload_to_mysql(df, table_name, engine)
-    else:
-        st.error('Please enter a table name.')
-
-
-# In[9]:
-
-
-# SQL Query testing
-st.header('Test SQL Queries')
-query = st.text_area('Enter your SQL query')
-if st.button('Execute Query'):
-    engine = create_mysql_engine()
-    result, error = execute_query(query, engine)
-    if error:
-        st.error(f'Error: {error}')
-    else:
-        st.dataframe(result)
-
-if __name__ == '__main__':
-    main()
+    # SQL Query testing
+    st.header('Test SQL Queries')
+    query = st.text_area('Enter your SQL query')
+    if st.button('Execute Query'):
+        if query.strip():
+            engine = create_mysql_engine()
+            result, error = execute_query(query, engine)
+            if error:
+                st.error(f'Error: {error}')
+            else:
+                st.dataframe(result)
+        else:
+            st.error('Please enter a valid SQL query.')
 
