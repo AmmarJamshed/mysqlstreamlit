@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 # MySQL connection parameters
-MYSQL_HOST = 'localhost'  # Change to your MySQL host
+MYSQL_HOST = '119.73.97.26'  # Change to your MySQL host
 MYSQL_PORT = '3306'  # Replace with your MySQL port if it's not the default 3306
 MYSQL_USER = 'root'  # Change to your MySQL user
 MYSQL_PASSWORD = 'Icedragon123'  # Change to your MySQL password
