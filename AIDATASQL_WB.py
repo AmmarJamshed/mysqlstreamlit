@@ -72,3 +72,6 @@ def main():
                 st.dataframe(result)
         else:
             st.error('Please enter a valid SQL query.')
+
+if __name__ == '__main__':
+    main()
