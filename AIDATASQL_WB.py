@@ -8,11 +8,10 @@ import pandas as pd
 import sqlite3
 import os
 from sqlalchemy import create_engine
-import github
-from github import Github
+from github import Github, GithubException
 
 # GitHub repository details
-GITHUB_TOKEN = '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'  # Replace with your GitHub Personal Access Token
+GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
 GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Replace with your GitHub repo name
 
 # SQLite connection
@@ -26,14 +25,29 @@ def create_sqlite_engine():
 # Upload file to GitHub
 def upload_to_github(file_path, commit_message):
     g = Github(GITHUB_TOKEN)
-    repo = g.get_repo(GITHUB_REPO)
-    with open(file_path, 'rb') as file:
-        content = file.read()
     try:
-        repo.create_file(file_path, commit_message, content, branch='main')
-        st.success(f"File {file_path} uploaded to GitHub successfully.")
-    except Exception as e:
-        st.error(f"Error uploading to GitHub: {e}")
+        st.write(f"Connecting to GitHub repository: {GITHUB_REPO}")
+        repo = g.get_repo(GITHUB_REPO)
+        st.write(f"Found repository: {repo.full_name}")
+        file_name = os.path.basename(file_path)
+        with open(file_path, 'rb') as file:
+            content = file.read()
+        try:
+            # Check if the file already exists
+            contents = repo.get_contents(file_name)
+            repo.update_file(contents.path, commit_message, content, contents.sha, branch='main')
+            st.success(f"File {file_path} updated on GitHub successfully.")
+        except GithubException as e:
+            # If the file does not exist, create it
+            if e.status == 404:
+                repo.create_file(file_name, commit_message, content, branch='main')
+                st.success(f"File {file_path} uploaded to GitHub successfully.")
+            else:
+                st.error(f"Error checking file existence on GitHub: {e}")
+    except GithubException as e:
+        st.error(f"Error accessing repository: {e.data}")
+        st.write(f"Repository Name: {GITHUB_REPO}")
+        st.write(f"Exception: {e}")
 
 # Function to upload DataFrame to SQLite
 def upload_to_sqlite(df, table_name, engine):
