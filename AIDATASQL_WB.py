@@ -13,7 +13,7 @@ from github import Github
 
 # GitHub repository details
 GITHUB_TOKEN = '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'  # Replace with your GitHub Personal Access Token
-GITHUB_REPO = 'https://github.com/AmmarJamshed/mysqlstreamlit/tree/main'  # Replace with your GitHub repo name
+GITHUB_REPO = 'AmmarJamshed/mysqlstreamlit'  # Replace with your GitHub repo name
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
