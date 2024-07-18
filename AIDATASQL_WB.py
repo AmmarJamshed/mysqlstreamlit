@@ -12,7 +12,7 @@ import github
 from github import Github
 
 # GitHub repository details
-GITHUB_TOKEN = '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'  # Replace with your GitHub Personal Access Token
+GITHUB_TOKEN = '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'  # Replace with your GitHub Personal Access Token
 GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Replace with your GitHub repo name
 
 # SQLite connection
