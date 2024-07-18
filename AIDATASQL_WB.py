@@ -8,6 +8,7 @@ import pandas as pd
 import sqlite3
 import os
 from sqlalchemy import create_engine
+import github
 from github import Github
 
 # GitHub repository details
