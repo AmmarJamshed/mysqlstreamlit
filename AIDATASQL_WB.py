@@ -5,67 +5,88 @@
 
 import streamlit as st
 import pandas as pd
-import pymysql
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
+import sqlite3
+import os
+from sqlalchemy import create_engine
+from github import Github
 
-# MySQL connection parameters
-MYSQL_HOST = '119.73.97.26'  # Change to your MySQL host
-MYSQL_PORT = '3306'  # Replace with your MySQL port if it's not the default 3306
-MYSQL_USER = 'root'  # Change to your MySQL user
-MYSQL_PASSWORD = 'Icedragon123'  # Change to your MySQL password
-MYSQL_DB = 'Streamlit_dep'  # Change to your database name
+# GitHub repository details
+GITHUB_TOKEN = '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'  # Replace with your GitHub Personal Access Token
+GITHUB_REPO = 'AmmarJamshed/mysqlstreamlit'  # Replace with your GitHub repo name
 
+# SQLite connection
+DB_FILE = 'local_db.sqlite'
 
-# In[4]:
-
-
-# Create a MySQL connection
-def create_mysql_engine():
-    engine = create_engine(f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}')
+# Create SQLite engine
+def create_sqlite_engine():
+    engine = create_engine(f'sqlite:///{DB_FILE}')
     return engine
 
-# Function to upload DataFrame to MySQL
-def upload_to_mysql(df, table_name, engine):
+# Upload file to GitHub
+def upload_to_github(file_path, commit_message):
+    g = Github(GITHUB_TOKEN)
+    repo = g.get_repo(GITHUB_REPO)
+    with open(file_path, 'rb') as file:
+        content = file.read()
+    try:
+        repo.create_file(file_path, commit_message, content, branch='main')
+        st.success(f"File {file_path} uploaded to GitHub successfully.")
+    except Exception as e:
+        st.error(f"Error uploading to GitHub: {e}")
+
+# Function to upload DataFrame to SQLite
+def upload_to_sqlite(df, table_name, engine):
     try:
         df.to_sql(table_name, engine, if_exists='replace', index=False)
-        st.success(f'Table {table_name} created successfully in MySQL.')
-    except SQLAlchemyError as e:
-        st.error(f'Error uploading to MySQL: {e}')
+        st.success(f'Table {table_name} created successfully in SQLite.')
+    except Exception as e:
+        st.error(f'Error uploading to SQLite: {e}')
 
 # Function to execute SQL query and return results or error
 def execute_query(query, engine):
     try:
-        with engine.connect() as connection:
-            result = connection.execute(text(query))
-            df = pd.DataFrame(result.fetchall(), columns=result.keys())
-            return df, None
-    except SQLAlchemyError as e:
+        result = engine.execute(query)
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+        return df, None
+    except Exception as e:
         return None, str(e)
-
 
 # Streamlit UI
 def main():
-    st.title('Upload Data and Test SQL Queries in MySQL')
+    st.title('Upload Data and Test SQL Queries on GitHub')
+
     # Upload CSV file
     uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.dataframe(df)
+        
+        # Save CSV file locally
+        file_path = os.path.join("uploaded_files", uploaded_file.name)
+        if not os.path.exists("uploaded_files"):
+            os.makedirs("uploaded_files")
+        df.to_csv(file_path, index=False)
+        
+        # Commit and push to GitHub
+        commit_message = st.text_input('Enter commit message', 'Add new CSV file')
+        if st.button('Upload to GitHub'):
+            upload_to_github(file_path, commit_message)
+        
         # Get table name
-        table_name = st.text_input('Enter table name to store data in MySQL')
-        if st.button('Upload to MySQL'):
+        table_name = st.text_input('Enter table name to store data in SQLite')
+        if st.button('Upload to SQLite'):
             if table_name:
-                engine = create_mysql_engine()
-                upload_to_mysql(df, table_name, engine)
+                engine = create_sqlite_engine()
+                upload_to_sqlite(df, table_name, engine)
             else:
                 st.error('Please enter a table name.')
+
     # SQL Query testing
     st.header('Test SQL Queries')
     query = st.text_area('Enter your SQL query')
     if st.button('Execute Query'):
         if query.strip():
-            engine = create_mysql_engine()
+            engine = create_sqlite_engine()
             result, error = execute_query(query, engine)
             if error:
                 st.error(f'Error: {error}')
