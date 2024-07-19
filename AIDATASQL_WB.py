@@ -69,12 +69,35 @@ def execute_query(query, engine):
     except Exception as e:
         return None, str(e)
 
+# Function to create a table
+def create_table(query, engine):
+    try:
+        with engine.connect() as connection:
+            connection.execute(text(query))
+            st.success("Table created successfully.")
+    except Exception as e:
+        st.error(f"Error creating table: {e}")
+
+# Streamlit UI
+# Streamlit UI
 # Streamlit UI
 def main():
-    st.title('Upload Data and Test SQL Queries on GitHub')
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: url("https://www.example.com/your-image.jpg");
+            background-size: cover;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.title('Upload Data and Test SQL Queries on GitHub Via AiDataSQL')
 
     # Upload CSV file
-    uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
+    uploaded_file = st.file_uploader('Upload your CSV file on AiDataSQL', type=['csv'])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.dataframe(df)
@@ -91,7 +114,7 @@ def main():
             upload_to_github(file_path, commit_message)
         
         # Get table name
-        table_name = st.text_input('Enter table name to store data in SQLite')
+        table_name = st.text_input('Enter table name to store data in AiDataSQL')
         if st.button('Upload to SQLite'):
             if table_name:
                 engine = create_sqlite_engine()
