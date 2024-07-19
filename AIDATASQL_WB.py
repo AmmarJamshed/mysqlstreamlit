@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from github import Github, GithubException
 
 # GitHub repository details
@@ -58,8 +58,6 @@ def upload_to_sqlite(df, table_name, engine):
         st.error(f'Error uploading to SQLite: {e}')
 
 # Function to execute SQL query and return results or error
-from sqlalchemy import text
-
 def execute_query(query, engine):
     try:
         with engine.connect() as connection:
@@ -99,14 +97,12 @@ def export_table(df):
     )
 
 # Streamlit UI
-# Streamlit UI
-# Streamlit UI
 def main():
     st.markdown(
         """
         <style>
         .stApp {
-            background-image: url("https://github.com/AmmarJamshed/mysqlstreamlit/blob/main/1694944780743.jpeg");
+            background-image: url("https://www.example.com/your-image.jpg");
             background-size: cover;
         }
         </style>
@@ -114,10 +110,10 @@ def main():
         unsafe_allow_html=True
     )
 
-    st.title('Upload Data and Test SQL Queries on GitHub Via AiDataSQL')
+    st.title('Upload Data and Test SQL Queries on GitHub')
 
     # Upload CSV file
-    uploaded_file = st.file_uploader('Upload your CSV file on AiDataSQL', type=['csv'])
+    uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.dataframe(df)
@@ -134,13 +130,35 @@ def main():
             upload_to_github(file_path, commit_message)
         
         # Get table name
-        table_name = st.text_input('Enter table name to store data in AiDataSQL')
+        table_name = st.text_input('Enter table name to store data in SQLite')
         if st.button('Upload to SQLite'):
             if table_name:
                 engine = create_sqlite_engine()
                 upload_to_sqlite(df, table_name, engine)
             else:
                 st.error('Please enter a table name.')
+
+    # Create Table
+    st.header('Create Table in SQLite')
+    create_table_query = st.text_area('Enter your CREATE TABLE SQL query')
+    if st.button('Create Table'):
+        if create_table_query.strip():
+            engine = create_sqlite_engine()
+            create_table(create_table_query, engine)
+        else:
+            st.error('Please enter a valid CREATE TABLE SQL query.')
+
+    # Rename Column
+    st.header('Rename Column in SQLite')
+    rename_table_name = st.text_input('Enter table name for renaming column')
+    old_column_name = st.text_input('Enter current column name')
+    new_column_name = st.text_input('Enter new column name')
+    if st.button('Rename Column'):
+        if rename_table_name.strip() and old_column_name.strip() and new_column_name.strip():
+            engine = create_sqlite_engine()
+            rename_column(rename_table_name, old_column_name, new_column_name, engine)
+        else:
+            st.error('Please fill in all fields to rename the column.')
 
     # SQL Query testing
     st.header('Test SQL Queries')
@@ -153,6 +171,7 @@ def main():
                 st.error(f'Error: {error}')
             else:
                 st.dataframe(result)
+                export_table(result)
         else:
             st.error('Please enter a valid SQL query.')
 
