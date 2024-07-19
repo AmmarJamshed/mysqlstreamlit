@@ -86,7 +86,7 @@ def main():
         """
         <style>
         .stApp {
-            background-image: url("https://www.example.com/your-image.jpg");
+            background-image: url("https://github.com/AmmarJamshed/mysqlstreamlit/blob/main/1694944780743.jpeg");
             background-size: cover;
         }
         </style>
