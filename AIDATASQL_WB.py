@@ -86,16 +86,6 @@ def rename_column(table_name, old_column_name, new_column_name, engine):
     except Exception as e:
         st.error(f"Error renaming column: {e}")
 
-# Function to export and download table data
-def export_table(df):
-    csv = df.to_csv(index=False)
-    st.download_button(
-        label="Download data as CSV",
-        data=csv,
-        file_name='query_results.csv',
-        mime='text/csv',
-    )
-
 # Streamlit UI
 def main():
     st.markdown(
@@ -171,7 +161,6 @@ def main():
                 st.error(f'Error: {error}')
             else:
                 st.dataframe(result)
-                export_table(result)
         else:
             st.error('Please enter a valid SQL query.')
 
