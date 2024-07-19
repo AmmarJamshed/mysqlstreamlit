@@ -78,6 +78,26 @@ def create_table(query, engine):
     except Exception as e:
         st.error(f"Error creating table: {e}")
 
+# Function to rename a column
+def rename_column(table_name, old_column_name, new_column_name, engine):
+    try:
+        query = f'ALTER TABLE {table_name} RENAME COLUMN {old_column_name} TO {new_column_name};'
+        with engine.connect() as connection:
+            connection.execute(text(query))
+            st.success(f"Column '{old_column_name}' renamed to '{new_column_name}' successfully in table '{table_name}'.")
+    except Exception as e:
+        st.error(f"Error renaming column: {e}")
+
+# Function to export and download table data
+def export_table(df):
+    csv = df.to_csv(index=False)
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='query_results.csv',
+        mime='text/csv',
+    )
+
 # Streamlit UI
 # Streamlit UI
 # Streamlit UI
