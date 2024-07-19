@@ -58,10 +58,12 @@ def upload_to_sqlite(df, table_name, engine):
         st.error(f'Error uploading to SQLite: {e}')
 
 # Function to execute SQL query and return results or error
+from sqlalchemy import text
+
 def execute_query(query, engine):
     try:
         with engine.connect() as connection:
-            result = connection.execute(query)
+            result = connection.execute(text(query))
             df = pd.DataFrame(result.fetchall(), columns=result.keys())
             return df, None
     except Exception as e:
