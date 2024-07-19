@@ -60,9 +60,10 @@ def upload_to_sqlite(df, table_name, engine):
 # Function to execute SQL query and return results or error
 def execute_query(query, engine):
     try:
-        result = engine.execute(query)
-        df = pd.DataFrame(result.fetchall(), columns=result.keys())
-        return df, None
+        with engine.connect() as connection:
+            result = connection.execute(query)
+            df = pd.DataFrame(result.fetchall(), columns=result.keys())
+            return df, None
     except Exception as e:
         return None, str(e)
 
