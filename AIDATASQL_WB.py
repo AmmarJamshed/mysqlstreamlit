@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, text
 from github import Github, GithubException
 
 # GitHub repository details
-GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
+GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
 GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Replace with your GitHub repo name
 
 # SQLite connection
