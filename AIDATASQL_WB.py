@@ -12,7 +12,7 @@ from github import Github, GithubException
 
 # GitHub repository details
 GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
-GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Replace with your GitHub repo name
+GITHUB_REPO = 'https://github.com/AmmarJamshed/mysqlstreamlit'  # Replace with your GitHub repo name
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
