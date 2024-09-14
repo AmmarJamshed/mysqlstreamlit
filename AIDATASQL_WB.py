@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, text
 from github import Github, GithubException
 
 # GitHub repository details - Ensure to set this as an environment variable
-GITHUB_TOKEN = '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'  # Replace with your environment variable
+GITHUB_TOKEN = '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'  # Replace with your environment variable
 GITHUB_REPO = 'AmmarJamshed/mysqlstreamlit'  # Only pass the 'owner/repository' format
 
 # SQLite connection
