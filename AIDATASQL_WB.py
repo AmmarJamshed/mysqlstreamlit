@@ -2,17 +2,16 @@
 # coding: utf-8
 
 # In[3]:
-
+import os
 import streamlit as st
 import pandas as pd
 import sqlite3
-import os
 from sqlalchemy import create_engine, text
 from github import Github, GithubException
 
-# GitHub repository details
-GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
-GITHUB_REPO = 'https://github.com/AmmarJamshed/mysqlstreamlit'  # Replace with your GitHub repo name
+# GitHub repository details - Ensure to set this as an environment variable
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Replace with your environment variable
+GITHUB_REPO = 'AmmarJamshed/mysqlstreamlit'  # Only pass the 'owner/repository' format
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
@@ -43,9 +42,10 @@ def upload_to_github(file_path, commit_message):
                 repo.create_file(file_name, commit_message, content, branch='main')
                 st.success(f"File {file_path} uploaded to GitHub successfully.")
             else:
-                st.error(f"Error checking file existence on GitHub: {e}")
+                st.error(f"Error checking file existence on GitHub: {e.data['message']}")
+                st.write(f"Exception details: {e}")
     except GithubException as e:
-        st.error(f"Error accessing repository: {e.data}")
+        st.error(f"Error accessing repository: {e.data['message']}")
         st.write(f"Repository Name: {GITHUB_REPO}")
         st.write(f"Exception: {e}")
 
@@ -76,12 +76,12 @@ def create_table(query, engine):
     except Exception as e:
         st.error(f"Error creating table: {e}")
 
-# Function to rename a column
+# Function to rename a column using parameterized queries
 def rename_column(table_name, old_column_name, new_column_name, engine):
     try:
-        query = f'ALTER TABLE {table_name} RENAME COLUMN {old_column_name} TO {new_column_name};'
+        query = text('ALTER TABLE :table_name RENAME COLUMN :old_column_name TO :new_column_name')
         with engine.connect() as connection:
-            connection.execute(text(query))
+            connection.execute(query, {'table_name': table_name, 'old_column_name': old_column_name, 'new_column_name': new_column_name})
             st.success(f"Column '{old_column_name}' renamed to '{new_column_name}' successfully in table '{table_name}'.")
     except Exception as e:
         st.error(f"Error renaming column: {e}")
@@ -105,28 +105,35 @@ def main():
     # Upload CSV file
     uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.dataframe(df)
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.dataframe(df)
         
-        # Save CSV file locally
-        file_path = os.path.join("uploaded_files", uploaded_file.name)
-        if not os.path.exists("uploaded_files"):
-            os.makedirs("uploaded_files")
-        df.to_csv(file_path, index=False)
-        
-        # Commit and push to GitHub
-        commit_message = st.text_input('Enter commit message', 'Add new CSV file')
-        if st.button('Upload to GitHub'):
-            upload_to_github(file_path, commit_message)
-        
-        # Get table name
-        table_name = st.text_input('Enter table name to store data in SQLite')
-        if st.button('Upload to SQLite'):
-            if table_name:
-                engine = create_sqlite_engine()
-                upload_to_sqlite(df, table_name, engine)
-            else:
-                st.error('Please enter a table name.')
+            # Save CSV file locally
+            file_path = os.path.join("uploaded_files", uploaded_file.name)
+            try:
+                if not os.path.exists("uploaded_files"):
+                    os.makedirs("uploaded_files")
+            except Exception as e:
+                st.error(f"Error creating directory: {e}")
+
+            df.to_csv(file_path, index=False)
+            
+            # Commit and push to GitHub
+            commit_message = st.text_input('Enter commit message', 'Add new CSV file')
+            if st.button('Upload to GitHub'):
+                upload_to_github(file_path, commit_message)
+            
+            # Get table name
+            table_name = st.text_input('Enter table name to store data in SQLite')
+            if st.button('Upload to SQLite'):
+                if table_name:
+                    engine = create_sqlite_engine()
+                    upload_to_sqlite(df, table_name, engine)
+                else:
+                    st.error('Please enter a table name.')
+        except Exception as e:
+            st.error(f"Error reading CSV file: {e}")
 
     # Create Table
     st.header('Create Table in SQLite')
