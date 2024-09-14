@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, text
 from github import Github, GithubException
 
 # GitHub repository details
-YOUR_ACCESS_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
+GITHUB_TOKEN = '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'  # Replace with your new GitHub Personal Access Token
 GITHUB_REPO = 'https://github.com/AmmarJamshed/mysqlstreamlit'  # Replace with your GitHub repo name
 
 # SQLite connection
