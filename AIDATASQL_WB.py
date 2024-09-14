@@ -5,12 +5,11 @@
 import os
 import streamlit as st
 import pandas as pd
-import sqlite3
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from github import Github, GithubException
 
 # GitHub repository details - Ensure to set this as an environment variable
-GITHUB_TOKEN = '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'  # Replace with your environment variable
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # Replace with your environment variable
 GITHUB_REPO = 'AmmarJamshed/mysqlstreamlit'  # Only pass the 'owner/repository' format
 
 # SQLite connection
@@ -57,35 +56,6 @@ def upload_to_sqlite(df, table_name, engine):
     except Exception as e:
         st.error(f'Error uploading to SQLite: {e}')
 
-# Function to execute SQL query and return results or error
-def execute_query(query, engine):
-    try:
-        with engine.connect() as connection:
-            result = connection.execute(text(query))
-            df = pd.DataFrame(result.fetchall(), columns=result.keys())
-            return df, None
-    except Exception as e:
-        return None, str(e)
-
-# Function to create a table
-def create_table(query, engine):
-    try:
-        with engine.connect() as connection:
-            connection.execute(text(query))
-            st.success("Table created successfully.")
-    except Exception as e:
-        st.error(f"Error creating table: {e}")
-
-# Function to rename a column using parameterized queries
-def rename_column(table_name, old_column_name, new_column_name, engine):
-    try:
-        query = text('ALTER TABLE :table_name RENAME COLUMN :old_column_name TO :new_column_name')
-        with engine.connect() as connection:
-            connection.execute(query, {'table_name': table_name, 'old_column_name': old_column_name, 'new_column_name': new_column_name})
-            st.success(f"Column '{old_column_name}' renamed to '{new_column_name}' successfully in table '{table_name}'.")
-    except Exception as e:
-        st.error(f"Error renaming column: {e}")
-
 # Streamlit UI
 def main():
     st.markdown(
@@ -107,8 +77,9 @@ def main():
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
+            st.write("File successfully uploaded.")
             st.dataframe(df)
-        
+            
             # Save CSV file locally
             file_path = os.path.join("uploaded_files", uploaded_file.name)
             try:
@@ -134,42 +105,8 @@ def main():
                     st.error('Please enter a table name.')
         except Exception as e:
             st.error(f"Error reading CSV file: {e}")
-
-    # Create Table
-    st.header('Create Table in SQLite')
-    create_table_query = st.text_area('Enter your CREATE TABLE SQL query')
-    if st.button('Create Table'):
-        if create_table_query.strip():
-            engine = create_sqlite_engine()
-            create_table(create_table_query, engine)
-        else:
-            st.error('Please enter a valid CREATE TABLE SQL query.')
-
-    # Rename Column
-    st.header('Rename Column in SQLite')
-    rename_table_name = st.text_input('Enter table name for renaming column')
-    old_column_name = st.text_input('Enter current column name')
-    new_column_name = st.text_input('Enter new column name')
-    if st.button('Rename Column'):
-        if rename_table_name.strip() and old_column_name.strip() and new_column_name.strip():
-            engine = create_sqlite_engine()
-            rename_column(rename_table_name, old_column_name, new_column_name, engine)
-        else:
-            st.error('Please fill in all fields to rename the column.')
-
-    # SQL Query testing
-    st.header('Test SQL Queries')
-    query = st.text_area('Enter your SQL query')
-    if st.button('Execute Query'):
-        if query.strip():
-            engine = create_sqlite_engine()
-            result, error = execute_query(query, engine)
-            if error:
-                st.error(f'Error: {error}')
-            else:
-                st.dataframe(result)
-        else:
-            st.error('Please enter a valid SQL query.')
+    else:
+        st.info("Please upload a CSV file to proceed.")
 
 if __name__ == '__main__':
     main()
