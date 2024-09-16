@@ -3,10 +3,11 @@
 
 # In[3]:
 import os
-import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine
+import streamlit as st
 from github import Github, GithubException
+from sqlalchemy import create_engine, text
+import altair as alt
 
 # GitHub repository details - Ensure to set this as an environment variable
 GITHUB_TOKEN = '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'  # Replace with your environment variable
@@ -56,6 +57,30 @@ def upload_to_sqlite(df, table_name, engine):
     except Exception as e:
         st.error(f'Error uploading to SQLite: {e}')
 
+# Function to query data from SQLite
+def query_sqlite(engine, query):
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text(query))
+            data = result.fetchall()
+            columns = result.keys()
+            return pd.DataFrame(data, columns=columns)
+    except Exception as e:
+        st.error(f'Error executing query: {e}')
+        return None
+
+# Function to visualize queried data
+def visualize_data(df):
+    if df is not None and not df.empty:
+        st.write("Visualization of Queried Data")
+        chart = alt.Chart(df).mark_bar().encode(
+            x=alt.X(df.columns[0], sort=None),
+            y=alt.Y(df.columns[1])
+        ).interactive()
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.error("No data available for visualization.")
+
 # Streamlit UI
 def main():
     st.markdown(
@@ -70,7 +95,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    st.title('Upload Data and Test SQL Queries on GitHub')
+    st.title('Upload Data, Query, and Visualize SQL Results')
 
     # Upload CSV file
     uploaded_file = st.file_uploader('Upload your CSV file', type=['csv'])
@@ -103,6 +128,22 @@ def main():
                     upload_to_sqlite(df, table_name, engine)
                 else:
                     st.error('Please enter a table name.')
+            
+            # Advanced SQL Query section
+            engine = create_sqlite_engine()
+            st.header("Run SQL Query")
+            query = st.text_area("Enter your SQL query")
+            if st.button("Run Query"):
+                queried_data = query_sqlite(engine, query)
+                if queried_data is not None:
+                    st.write("Query Result")
+                    st.dataframe(queried_data)
+                    
+                    # Visualize data
+                    if len(queried_data.columns) >= 2:  # Need at least two columns for visualization
+                        visualize_data(queried_data)
+                    else:
+                        st.warning("At least two columns are required for visualization.")
         except Exception as e:
             st.error(f"Error reading CSV file: {e}")
     else:
