@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from github import Github, GithubException
 
 # GitHub repository details - Ensure to set this as an environment variable
-GITHUB_TOKEN = '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'  # Replace with your environment variable
+GITHUB_TOKEN = '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'  # Replace with your environment variable
 GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Only pass the 'owner/repository' format
 
 # SQLite connection
