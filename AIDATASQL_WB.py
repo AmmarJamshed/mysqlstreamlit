@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, text
 import altair as alt
 
 # GitHub repository details - Ensure to set this as an environment variable
-GITHUB_TOKEN = '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'  # Replace with your environment variable
+GITHUB_TOKEN = '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'  # Replace with your environment variable
 GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  # Only pass the 'owner/repository' format
 
 # SQLite connection
