@@ -17,6 +17,28 @@ GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  #
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
+# visual function
+def visualize_data(df):
+    try:
+        st.subheader("Visualize Data")
+        
+        # Let the user select columns for X and Y axes
+        x_axis = st.selectbox("Select the X-axis column", df.columns)
+        y_axis = st.selectbox("Select the Y-axis column", df.columns)
+        
+        # Create Altair chart
+        chart = alt.Chart(df).mark_line().encode(
+            x=x_axis,
+            y=y_axis
+        ).properties(
+            width=700,
+            height=400
+        )
+        
+        st.altair_chart(chart)
+
+    except Exception as e:
+        st.error(f"Failed to visualize data: {e}")
 # query function
 def query_sqlite(engine, query):
     try:
