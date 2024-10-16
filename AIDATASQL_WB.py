@@ -17,7 +17,18 @@ GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  #
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
-
+# query function
+def query_sqlite(engine, query):
+    try:
+        # Connect to the SQLite database and execute the query
+        with engine.connect() as connection:
+            result = connection.execute(text(query))
+            # Fetch all results and convert to DataFrame
+            df = pd.DataFrame(result.fetchall(), columns=result.keys())
+            return df
+    except Exception as e:
+        st.error(f"Failed to execute query: {e}")
+        return None
 # function to upload data to sql
 def upload_to_sqlite(df, table_name, engine):
     try:
