@@ -18,6 +18,15 @@ GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  #
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
 
+# function to upload data to sql
+def upload_to_sqlite(df, table_name, engine):
+    try:
+        # Upload the dataframe to the SQLite database
+        df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+        st.success(f"Data uploaded successfully to the '{table_name}' table in SQLite.")
+    except Exception as e:
+        st.error(f"Failed to upload data to SQLite: {e}")
+
 # Function to upload file to GitHub
 def upload_to_github(file_path, commit_message):
     try:
