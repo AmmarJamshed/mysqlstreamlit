@@ -18,6 +18,35 @@ GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  #
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
 
+# Function to upload file to GitHub
+def upload_to_github(file_path, commit_message):
+    try:
+        # Initialize GitHub object with token
+        g = Github(GITHUB_TOKEN)
+
+        # Get the GitHub repository
+        repo = g.get_repo(GITHUB_REPO)
+
+        # Read the file content
+        with open(file_path, "rb") as file:
+            content = file.read()
+
+        # Determine file name from path
+        file_name = os.path.basename(file_path)
+
+        # Check if the file already exists in the repository
+        try:
+            existing_file = repo.get_contents(f"uploaded_files/{file_name}")
+            # If the file exists, update it
+            repo.update_file(existing_file.path, commit_message, content, existing_file.sha)
+            st.success(f"File '{file_name}' updated in the repository.")
+        except GithubException:
+            # If the file does not exist, create a new one
+            repo.create_file(f"uploaded_files/{file_name}", commit_message, content)
+            st.success(f"File '{file_name}' uploaded to the repository.")
+
+    except GithubException as e:
+        st.error(f"Failed to upload file to GitHub: {e}")
 # Create SQLite engine
 def create_sqlite_engine():
     engine = create_engine(f'sqlite:///{DB_FILE}')
