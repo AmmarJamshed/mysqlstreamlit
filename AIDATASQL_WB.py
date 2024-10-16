@@ -2,6 +2,8 @@
 # coding: utf-8
 
 # In[3]:
+
+# In[3]:
 import os
 import pandas as pd
 import streamlit as st
@@ -46,6 +48,7 @@ def main():
                 df = pd.read_csv(uploaded_file)
                 st.write("CSV file successfully uploaded.")
             elif uploaded_file.name.endswith('.xlsx'):
+                # Read Excel file using pandas
                 df = pd.read_excel(uploaded_file)
                 st.write("Excel file successfully uploaded.")
             else:
@@ -61,6 +64,7 @@ def main():
             except Exception as e:
                 st.error(f"Error creating directory: {e}")
 
+            # Save file based on extension
             if uploaded_file.name.endswith('.csv'):
                 df.to_csv(file_path, index=False)
             elif uploaded_file.name.endswith('.xlsx'):
