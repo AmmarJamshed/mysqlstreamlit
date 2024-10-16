@@ -22,9 +22,15 @@ def visualize_data(df):
     try:
         st.subheader("Visualize Data")
         
-        # Let the user select columns for X and Y axes
-        x_axis = st.selectbox("Select the X-axis column", df.columns)
-        y_axis = st.selectbox("Select the Y-axis column", df.columns)
+        # Use session state to store selected columns for the X and Y axes
+        if "x_axis" not in st.session_state:
+            st.session_state["x_axis"] = df.columns[0]
+        if "y_axis" not in st.session_state:
+            st.session_state["y_axis"] = df.columns[1]
+
+        # Let the user select columns for X and Y axes using session state
+        x_axis = st.selectbox("Select the X-axis column", df.columns, index=df.columns.get_loc(st.session_state["x_axis"]), key="x_axis")
+        y_axis = st.selectbox("Select the Y-axis column", df.columns, index=df.columns.get_loc(st.session_state["y_axis"]), key="y_axis")
         
         # Create Altair chart
         chart = alt.Chart(df).mark_line().encode(
