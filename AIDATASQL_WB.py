@@ -17,7 +17,12 @@ GITHUB_REPO = 'AmmarJamshed/Data-manip-with-Pandas-and-other-basic-libraires'  #
 
 # SQLite connection
 DB_FILE = 'local_db.sqlite'
-# visual function
+# Create SQLite engine
+def create_sqlite_engine():
+    engine = create_engine(f'sqlite:///{DB_FILE}')
+    return engine
+
+# Function to visualize the data
 def visualize_data(df):
     try:
         st.subheader("Visualize Data")
@@ -45,75 +50,21 @@ def visualize_data(df):
 
     except Exception as e:
         st.error(f"Failed to visualize data: {e}")
-# query function
-def query_sqlite(engine, query):
+
+# Function to run SQL query and store results in session state
+def run_query(engine, query):
+    if "query_result" not in st.session_state:
+        st.session_state["query_result"] = None
     try:
-        # Connect to the SQLite database and execute the query
-        with engine.connect() as connection:
-            result = connection.execute(text(query))
-            # Fetch all results and convert to DataFrame
-            df = pd.DataFrame(result.fetchall(), columns=result.keys())
-            return df
+        result = pd.read_sql(query, engine)
+        st.session_state["query_result"] = result
+        return result
     except Exception as e:
-        st.error(f"Failed to execute query: {e}")
+        st.error(f"Failed to run query: {e}")
         return None
-# function to upload data to sql
-def upload_to_sqlite(df, table_name, engine):
-    try:
-        # Upload the dataframe to the SQLite database
-        df.to_sql(table_name, con=engine, if_exists='replace', index=False)
-        st.success(f"Data uploaded successfully to the '{table_name}' table in SQLite.")
-    except Exception as e:
-        st.error(f"Failed to upload data to SQLite: {e}")
-
-# Function to upload file to GitHub
-def upload_to_github(file_path, commit_message):
-    try:
-        # Initialize GitHub object with token
-        g = Github(GITHUB_TOKEN)
-
-        # Get the GitHub repository
-        repo = g.get_repo(GITHUB_REPO)
-
-        # Read the file content
-        with open(file_path, "rb") as file:
-            content = file.read()
-
-        # Determine file name from path
-        file_name = os.path.basename(file_path)
-
-        # Check if the file already exists in the repository
-        try:
-            existing_file = repo.get_contents(f"uploaded_files/{file_name}")
-            # If the file exists, update it
-            repo.update_file(existing_file.path, commit_message, content, existing_file.sha)
-            st.success(f"File '{file_name}' updated in the repository.")
-        except GithubException:
-            # If the file does not exist, create a new one
-            repo.create_file(f"uploaded_files/{file_name}", commit_message, content)
-            st.success(f"File '{file_name}' uploaded to the repository.")
-
-    except GithubException as e:
-        st.error(f"Failed to upload file to GitHub: {e}")
-# Create SQLite engine
-def create_sqlite_engine():
-    engine = create_engine(f'sqlite:///{DB_FILE}')
-    return engine
 
 # Streamlit UI
 def main():
-    st.markdown(
-        """
-        <style>
-        .stApp {
-            background-image: url("https://www.example.com/your-image.jpg");
-            background-size: cover;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
     st.title('Upload Data, Query, and Visualize SQL Results')
 
     # Upload CSV or Excel file
@@ -125,7 +76,6 @@ def main():
                 df = pd.read_csv(uploaded_file)
                 st.write("CSV file successfully uploaded.")
             elif uploaded_file.name.endswith('.xlsx'):
-                # Read Excel file using pandas
                 df = pd.read_excel(uploaded_file)
                 st.write("Excel file successfully uploaded.")
             else:
@@ -135,44 +85,32 @@ def main():
             
             # Save file locally
             file_path = os.path.join("uploaded_files", uploaded_file.name)
-            try:
-                if not os.path.exists("uploaded_files"):
-                    os.makedirs("uploaded_files")
-            except Exception as e:
-                st.error(f"Error creating directory: {e}")
+            if not os.path.exists("uploaded_files"):
+                os.makedirs("uploaded_files")
+            df.to_csv(file_path, index=False)
 
-            # Save file based on extension
-            if uploaded_file.name.endswith('.csv'):
-                df.to_csv(file_path, index=False)
-            elif uploaded_file.name.endswith('.xlsx'):
-                df.to_excel(file_path, index=False)
-            
-            # Commit and push to GitHub
-            commit_message = st.text_input('Enter commit message', 'Add new file')
-            if st.button('Upload to GitHub'):
-                upload_to_github(file_path, commit_message)
-            
             # Get table name
             table_name = st.text_input('Enter table name to store data in SQLite')
             if st.button('Upload to SQLite'):
                 if table_name:
                     engine = create_sqlite_engine()
-                    upload_to_sqlite(df, table_name, engine)
+                    df.to_sql(table_name, engine, if_exists='replace', index=False)
+                    st.success(f"Data successfully uploaded to table '{table_name}' in SQLite.")
                 else:
                     st.error('Please enter a table name.')
             
-            # Advanced SQL Query section
+            # SQL Query section
             engine = create_sqlite_engine()
             st.header("Run SQL Query")
             query = st.text_area("Enter your SQL query")
             if st.button("Run Query"):
-                queried_data = query_sqlite(engine, query)
+                queried_data = run_query(engine, query)
                 if queried_data is not None:
                     st.write("Query Result")
                     st.dataframe(queried_data)
-                    
-                    # Visualize data
-                    if len(queried_data.columns) >= 2:  # Need at least two columns for visualization
+
+                    # Visualize data if there are at least two columns
+                    if len(queried_data.columns) >= 2:
                         visualize_data(queried_data)
                     else:
                         st.warning("At least two columns are required for visualization.")
